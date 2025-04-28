@@ -1,4 +1,3 @@
-os
 datetime
 requests
 google-auth
