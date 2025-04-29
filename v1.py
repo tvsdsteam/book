@@ -7,7 +7,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = 'eastern-surface-456208-r2-b0fcbc3d5f53.json'
+SERVICE_ACCOUNT_FILE = 'eastern-surface-456208-r2-38280dc796de.json'
 
 SPREADSHEET_ID = '1Y_D1zGRUgaK0B87hSUBb7T1D6UDJXcXFVr3gndAxCiU'
 SOURCE_SHEET_NAME = 'list'
