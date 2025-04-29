@@ -3,24 +3,41 @@ import time
 import datetime
 import urllib.parse
 import requests
+import json
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
+# Google Sheets API
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = 'eastern-surface-456208-r2-38280dc796de.json'
-
 SPREADSHEET_ID = '1Y_D1zGRUgaK0B87hSUBb7T1D6UDJXcXFVr3gndAxCiU'
 SOURCE_SHEET_NAME = 'list'
 ARCHIVE_SHEET_NAME = 'Archived'
 
+# TextMeBot API
 TEXTMEBOT_API_KEY = 'T55wPwawmj2V'
 
+# ---------------------------------------------
+# AUTHENTICATE WITH GOOGLE SHEETS
+# ---------------------------------------------
 def get_service():
+    creds_json = os.environ.get("GOOGLE_CREDENTIALS")
+
+    if not creds_json:
+        raise ValueError("❌ GOOGLE_CREDENTIALS environment variable is not set!")
+
+    # Write to a temporary file
+    with open("service_account.json", "w") as f:
+        f.write(creds_json)
+
     creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        "service_account.json", scopes=SCOPES
+    )
+
     return build('sheets', 'v4', credentials=creds)
 
-
+# ---------------------------------------------
+# GET SHEET ID BY NAME
+# ---------------------------------------------
 def get_sheet_id(service, sheet_name):
     metadata = service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
     for sheet in metadata.get('sheets', []):
@@ -59,7 +76,7 @@ def send_whatsapp_message(to_phone, message_text):
         print(f"❌ Error sending message to {to_phone}: {e}")
 
 # ---------------------------------------------
-# SHEET MANIPULATION
+# SHEET MANIPULATION FUNCTIONS
 # ---------------------------------------------
 def append_row_to_archive(service, row):
     body = {'values': [row]}
@@ -112,14 +129,14 @@ def process_sheet(service, source_sheet_id):
     for i in range(len(rows) - 1, -1, -1):
         try:
             row = rows[i]
-            if len(row) < 5:
+            if len(row) < 6:
                 print(f"⚠️ Row {i+2} missing fields. Skipping.")
                 continue
 
             scheduled_date = row[4].strip()
             scheduled_time = row[5].strip()
             to_phone = row[1].strip()
-            message_text = "\n Just a Reminder : " + row[2] + "\n \n" +row[3].strip()
+            message_text = "\n Just a Reminder : " + row[2] + "\n \n" + row[3].strip()
 
             scheduled_datetime = datetime.datetime.strptime(
                 f"{scheduled_date} {scheduled_time}", "%m/%d/%Y %I:%M:%S %p"
